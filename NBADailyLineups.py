@@ -15,11 +15,14 @@ class NBADailyLineups:
             result += "\n\nMatchup {}\n".format(index + 1)
             for team in matchup:
                 result += "\n\n{} team: {}\n{}\n".format(team, matchup[team]["team"], '-' * len("team: " + team + matchup[team]["team"]))
-                result += "\nLikely to play\n{}\n".format('-' * len("Likely to play"))
-                for player in matchup[team]["likely"]:
+                result += "\nConfirmed Playing\n{}\n".format('-' * len("Confirmed Playing"))
+                for player in matchup[team]["confirmed"]:
                     result += player + "\n"
-                result += "\nNot likely to play\n{}\n".format('-' * len("Not likely to play"))
-                for player in matchup[team]["unlikely"]:
+                result += "\nGame Time Decision\n{}\n".format('-' * len("Game Time Decision"))
+                for player in matchup[team]["gtd"]:
+                    result += player + "\n"
+                result += "\nConfirmed Out\n{}\n".format('-' * len("Confirmed Out"))
+                for player in matchup[team]["out"]:
                     result += player + "\n"
         return result
 
@@ -35,13 +38,15 @@ class NBADailyLineups:
             self.data.append({
                 "away": {
                     "team": matchup.find("a", {"class": "lineup__mteam is-visit white"}).text.split(None, 1)[0],
-                    "likely": [item.a['title'] for item in matchup.find("ul", {"class": "lineup__list is-visit"}).find_all("li", {"class": "lineup__player is-pct-play-100"})],
-                    "unlikely": [item.a['title'] for item in matchup.find("ul", {"class": "lineup__list is-visit"}).find_all("li", {"class": "lineup__player is-pct-play-0 has-injury-status"})], 
+                    "confirmed": set(item.a['title'] for item in matchup.find("ul", {"class": "lineup__list is-visit"}).find_all("li", {"title": "Very Likely To Play"})),
+                    "gtd": set(item.a['title'] for item in matchup.find("ul", {"class": "lineup__list is-visit"}).find_all("li", {"title": ["Toss Up To Play", "Likely To Play"]})),
+                    "out": set(item.a['title'] for item in matchup.find("ul", {"class": "lineup__list is-visit"}).find_all("li", {"title": "Very Unlikely To Play"})), 
                 },
                 "home": {
                     "team": matchup.find("a", {"class": "lineup__mteam is-home white"}).text.split(None, 1)[0],
-                    "likely": [item.a['title'] for item in matchup.find("ul", {"class": "lineup__list is-home"}).find_all("li", {"class": "lineup__player is-pct-play-100"})],
-                    "unlikely": [item.a['title'] for item in matchup.find("ul", {"class": "lineup__list is-home"}).find_all("li", {"class": "lineup__player is-pct-play-0 has-injury-status"})], 
+                    "confirmed": set(item.a['title'] for item in matchup.find("ul", {"class": "lineup__list is-home"}).find_all("li", {"title": ["Very Likely To Play", "Likely To Play"]})),
+                    "gtd": set(item.a['title'] for item in matchup.find("ul", {"class": "lineup__list is-home"}).find_all("li", {"title": "Toss Up To Play"})),
+                    "out": set(item.a['title'] for item in matchup.find("ul", {"class": "lineup__list is-home"}).find_all("li", {"title": "Very Unlikely To Play"})), 
                 }
             })
 
